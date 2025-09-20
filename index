@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Day04 — ToDo管理アプリ</title>
+  <meta name="description" content="シンプルなToDo管理アプリ。タスク追加・完了・削除に対応し、ブラウザに保存されます。">
+  <style>
+    :root {
+      --bg:#0b1020; --panel:#121836; --text:#e9ecf1; --muted:#a7b0c3; --accent:#7aa2ff;
+      --ok:#6efacc; --shadow:0 10px 24px rgba(0,0,0,.35);
+    }
+    body {
+      margin:0; min-height:100vh; display:flex; justify-content:center; align-items:center;
+      background:radial-gradient(1000px 500px at 80% -10%,#16204a,transparent),var(--bg);
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif;
+      color:var(--text);
+    }
+    .app {
+      width:min(96vw,480px); background:var(--panel);
+      border-radius:18px; box-shadow:var(--shadow); padding:24px;
+    }
+    h1 { margin:0 0 16px; font-size:22px; }
+    .input-row { display:flex; gap:8px; }
+    input[type=text] {
+      flex:1; padding:10px; border-radius:12px; border:1px solid #2a3566;
+      background:#0f1430; color:var(--text);
+    }
+    button {
+      padding:10px 14px; border:0; border-radius:12px;
+      background:linear-gradient(180deg,var(--accent),#557aff);
+      color:#071022; font-weight:600; cursor:pointer;
+    }
+    ul { list-style:none; margin:16px 0 0; padding:0; }
+    li {
+      display:flex; align-items:center; justify-content:space-between;
+      background:#0f1430; margin-bottom:8px; padding:8px 12px;
+      border-radius:12px; border:1px solid #2a3566;
+    }
+    li.done span { text-decoration:line-through; color:var(--muted); }
+    .count { margin-top:12px; font-size:14px; color:var(--muted); }
+    .del {
+      background:#ff6b6b; border:none; color:#fff; font-weight:600;
+      padding:6px 10px; border-radius:8px; cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>Day04 — ToDo管理アプリ</h1>
+    <div class="input-row">
+      <input id="task-input" type="text" placeholder="タスクを入力…" aria-label="新しいタスク">
+      <button id="add-btn">追加</button>
+    </div>
+    <ul id="task-list"></ul>
+    <div id="task-count" class="count">残り 0 件</div>
+  </main>
+
+<script>
+(function(){
+  const input = document.getElementById('task-input');
+  const addBtn = document.getElementById('add-btn');
+  const list = document.getElementById('task-list');
+  const countEl = document.getElementById('task-count');
+
+  let tasks = JSON.parse(localStorage.getItem('todos')||'[]');
+
+  function save(){ localStorage.setItem('todos', JSON.stringify(tasks)); }
+
+  function updateCount(){
+    const remaining = tasks.filter(t=>!t.done).length;
+    countEl.textContent = `残り ${remaining} 件`;
+  }
+
+  function render(){
+    list.innerHTML='';
+    tasks.forEach((t,i)=>{
+      const li=document.createElement('li');
+      if(t.done) li.classList.add('done');
+      const span=document.createElement('span');
+      span.textContent=t.text;
+      span.onclick=()=>toggle(i);
+
+      const del=document.createElement('button');
+      del.textContent='削除';
+      del.className='del';
+      del.onclick=()=>remove(i);
+
+      li.appendChild(span);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+    updateCount();
+    save();
+  }
+
+  function add(){
+    const text=input.value.trim();
+    if(!text) return;
+    tasks.push({text, done:false});
+    input.value='';
+    render();
+  }
+
+  function toggle(i){
+    tasks[i].done=!tasks[i].done;
+    render();
+  }
+
+  function remove(i){
+    tasks.splice(i,1);
+    render();
+  }
+
+  addBtn.onclick=add;
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter') add(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
